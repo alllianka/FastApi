@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from app import models, schemas
 from typing import Optional
+from datetime import datetime
 
 
 def create_advertisement(db: Session, ad: schemas.AdvertisementCreate) -> models.Advertisement:
@@ -22,6 +23,8 @@ def search_advertisements(
     price_min: Optional[float] = None,
     price_max: Optional[float] = None,
     author: Optional[str] = None,
+    created_at_from: Optional[datetime] = None,
+    created_at_to: Optional[datetime] = None,
     skip: int = 0,
     limit: int = 100,
 ) -> list[models.Advertisement]:
@@ -37,6 +40,12 @@ def search_advertisements(
         query = query.filter(models.Advertisement.price >= price_min)
     if price_max is not None:
         query = query.filter(models.Advertisement.price <= price_max)
+
+    # Фильтрация по дате создания (инклюзивный диапазон)
+    if created_at_from is not None:
+        query = query.filter(models.Advertisement.created_at >= created_at_from)
+    if created_at_to is not None:
+        query = query.filter(models.Advertisement.created_at <= created_at_to)
 
     return query.order_by(models.Advertisement.created_at.desc()).offset(skip).limit(limit).all()
 

@@ -1,11 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
+from datetime import datetime
 
 from app.database import engine, get_db, Base
 from app import schemas, crud
 
-# Создаём таблицы при старте
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Advertisement Service", version="1.0.0")
@@ -23,6 +23,14 @@ def search_advertisements(
     price_min: Optional[float] = Query(None, ge=0),
     price_max: Optional[float] = Query(None, ge=0),
     author: Optional[str] = Query(None),
+    created_at_from: Optional[datetime] = Query(
+        None,
+        description="Дата создания 'от' (включительно). ISO-формат, например 2026-10-01T00:00:00Z",
+    ),
+    created_at_to: Optional[datetime] = Query(
+        None,
+        description="Дата создания 'до' (включительно). ISO-формат, например 2026-10-05T23:59:59Z",
+    ),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_db),
@@ -34,6 +42,8 @@ def search_advertisements(
         price_min=price_min,
         price_max=price_max,
         author=author,
+        created_at_from=created_at_from,
+        created_at_to=created_at_to,
         skip=skip,
         limit=limit,
     )
